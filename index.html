@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="Split a time pool across items by their share." />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0F172A" />
+<!-- Home-screen web app (iOS + Android) -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Time Alloc" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="time-alloc-manifest.json" />
+<link rel="apple-touch-icon" sizes="180x180" href="time-alloc-icon-180.png" />
+<link rel="icon" href="data:," />
+    <title>Time Allocation Calculator</title>
+    <style>
+        /* DESIGN SYSTEM IMPLEMENTATION */
+        :root {
+            /* Palette */
+            --color-bg: #0F172A;
+            --color-surface: #1E293B;
+            --color-text: #F8FAFC;
+            --color-muted: #94A3B8;
+            --color-accent: #39FF14;
+            --color-error: #EF4444;
+
+            /* Type */
+            --font-display: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            /* Spacing & Layout */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2.5rem;
+            
+            --border-radius: 4px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: calc(var(--spacing-md) + env(safe-area-inset-top)) var(--spacing-md) calc(var(--spacing-md) + env(safe-area-inset-bottom));
+        }
+
+        /* UTILITIES */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .section-title {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--color-muted);
+            border-bottom: 1px solid var(--color-surface);
+            padding-bottom: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        /* INPUT GROUPS */
+        .input-group {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .label {
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .sub-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--color-muted);
+        }
+
+        /* TIME INPUTS */
+        .time-inputs {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--color-surface);
+            border: 1px solid transparent;
+            color: var(--color-text);
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            transition: border-color var(--transition);
+            appearance: textfield; /* Remove spinners default */
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.1);
+        }
+
+        .unit-label {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        /* GRID LAYOUTS */
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .grid-3-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+        }
+
+        .grid-2-col-mobile {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (min-width: 640px) {
+            .grid-2-col-mobile {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* RESULTS */
+        .result-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--color-muted);
+            font-size: 0.875rem;
+        }
+
+        .result-value {
+            font-family: var(--font-display);
+            color: var(--color-accent);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* PAGE HEADER */
+        .page-head {
+            padding: 2px 2px 0;
+        }
+        .page-head h1 {
+            font-size: 1.35rem;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .page-head p {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .page-head p strong { color: var(--color-accent); font-weight: 600; }
+
+        .hint {
+            font-size: 0.83rem;
+            color: var(--color-muted);
+            line-height: 1.55;
+            opacity: 0.8;
+        }
+        .hint strong { color: var(--color-text); font-weight: 600; }
+
+        /* FOOTER */
+        .footer {
+            margin-top: var(--spacing-lg);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            opacity: 0.5;
+        }
+
+        /* ACCESSIBILITY */
+        :focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 2px;
+        }
+
+        /* ANIMATION */
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .updated {
+            animation: flash 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="page-head">
+        <h1>Time Allocation Calculator</h1>
+        <p>Enter the total time pool, then each item. Outputs split the pool <strong>by share</strong>.</p>
+    </header>
+    
+    <!-- SECTION 1: TOTAL TIME INPUTS -->
+    <section>
+        <h2 class="section-title">Total Time Allocation</h2>
+        
+        <div class="grid-2-col-mobile">
+            <!-- Input 1 -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Overall Time 1</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" id="total1-h" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" id="total1-m" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2 -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Overall Time 2</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" id="total2-h" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" id="total2-m" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: INDIVIDUAL INPUTS -->
+    <section>
+        <h2 class="section-title">Individual Item Breakdown</h2>
+        <div class="grid-2-col">
+            <!-- Item A -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item A</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="a" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="a" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item B -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item B</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="b" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="b" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item C -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item C</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="c" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="c" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item D -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item D</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="d" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="d" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item E -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item E</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="e" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="e" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item F -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item F</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-h" data-id="f" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="number" inputmode="numeric" class="ind-m" data-id="f" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: RESULTS -->
+    <section>
+        <h2 class="section-title">Calculated Proportional Output</h2>
+        <div class="grid-2-col">
+            <div id="results-left">
+                <div class="result-row">
+                    <span class="result-label">Item A</span>
+                    <span class="result-value" id="out-a">0.0000</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item B</span>
+                    <span class="result-value" id="out-b">0.0000</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item C</span>
+                    <span class="result-value" id="out-c">0.0000</span>
+                </div>
+            </div>
+            <div id="results-right">
+                <div class="result-row">
+                    <span class="result-label">Item D</span>
+                    <span class="result-value" id="out-d">0.0000</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item E</span>
+                    <span class="result-value" id="out-e">0.0000</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item F</span>
+                    <span class="result-value" id="out-f">0.0000</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <p class="hint"><strong>On your home screen:</strong> in Safari, tap Share, then “Add to Home Screen” — it will open full-screen as <strong>Time Alloc</strong>, with no address bar.</p>
+
+    <div class="footer">
+        TIME CALCULATOR v1.0
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        const inputs = {
+            t1h: document.getElementById('total1-h'),
+            t1m: document.getElementById('total1-m'),
+            t2h: document.getElementById('total2-h'),
+            t2m: document.getElementById('total2-m'),
+        };
+
+        const individualInputs = {
+            a: { h: document.querySelector('input[data-id="a"].ind-h'), m: document.querySelector('input[data-id="a"].ind-m') },
+            b: { h: document.querySelector('input[data-id="b"].ind-h'), m: document.querySelector('input[data-id="b"].ind-m') },
+            c: { h: document.querySelector('input[data-id="c"].ind-h'), m: document.querySelector('input[data-id="c"].ind-m') },
+            d: { h: document.querySelector('input[data-id="d"].ind-h'), m: document.querySelector('input[data-id="d"].ind-m') },
+            e: { h: document.querySelector('input[data-id="e"].ind-h'), m: document.querySelector('input[data-id="e"].ind-m') },
+            f: { h: document.querySelector('input[data-id="f"].ind-h'), m: document.querySelector('input[data-id="f"].ind-m') },
+        };
+
+        const outputs = {
+            a: document.getElementById('out-a'),
+            b: document.getElementById('out-b'),
+            c: document.getElementById('out-c'),
+            d: document.getElementById('out-d'),
+            e: document.getElementById('out-e'),
+            f: document.getElementById('out-f'),
+        };
+
+        const allInputs = [
+            ...Object.values(inputs),
+            ...Object.values(individualInputs).flatMap(obj => [obj.h, obj.m])
+        ];
+
+        // Helper: Get total minutes from two inputs
+        const getMinutes = (hInput, mInput) => {
+            const h = parseFloat(hInput.value) || 0;
+            const m = parseFloat(mInput.value) || 0;
+            return (h * 60) + m;
+        };
+
+        // Helper: Format number to 4 decimal places
+        const formatNumber = (num) => {
+            return num.toFixed(4);
+        };
+
+        // Core Logic
+        const calculate = () => {
+            // 1. Calculate Total Time Pool (in minutes)
+            const totalMinutes = getMinutes(inputs.t1h, inputs.t1m) + getMinutes(inputs.t2h, inputs.t2m);
+
+            // 2. Calculate Individual Minutes
+            const items = ['a', 'b', 'c', 'd', 'e', 'f'];
+            let itemMinutes = {};
+            let totalIndividualMinutes = 0;
+
+            items.forEach(key => {
+                const mins = getMinutes(individualInputs[key].h, individualInputs[key].m);
+                itemMinutes[key] = mins;
+                totalIndividualMinutes += mins;
+            });
+
+            // 3. Calculate Proportions
+            // Logic: If Total Time is 0, result is 0.
+            // If Total Individual is 0, result is 0.
+            // Else: (Individual / Total Individual) * Total Time
+            
+            items.forEach(key => {
+                let result = 0;
+                
+                if (totalMinutes > 0 && totalIndividualMinutes > 0) {
+                    const ratio = itemMinutes[key] / totalIndividualMinutes;
+                    result = totalMinutes * ratio;
+                }
+
+                // Update DOM
+                outputs[key].textContent = formatNumber(result);
+                
+                // Visual feedback
+                outputs[key].classList.remove('updated');
+                void outputs[key].offsetWidth; // Trigger reflow
+                outputs[key].classList.add('updated');
+            });
+        };
+
+        // Event Listeners
+        allInputs.forEach(input => {
+            input.addEventListener('input', calculate);
+            input.addEventListener('change', calculate);
+        });
+
+        // Initial calculation on load
+        calculate();
+    });
+</script>
+
+</body>
+</html>
