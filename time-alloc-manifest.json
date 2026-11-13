@@ -1,5 +1,5 @@
 {
-  "name": "Time Allocation Calculator",
+  "name": "Time Allocator",
   "short_name": "Time Alloc",
   "description": "Split a time pool across items by their share.",
   "start_url": ".",
