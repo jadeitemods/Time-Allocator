@@ -195,6 +195,38 @@
             letter-spacing: -0.02em;
         }
 
+        /* FRACTION OUTPUTS (Time 1 over Time 2, in hours) */
+        .results-note {
+            font-size: 0.83rem;
+            color: var(--color-muted);
+            margin-bottom: var(--spacing-sm);
+        }
+        .result-value.frac {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1.35;
+            font-size: 1.125rem;
+        }
+        .frac-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+        }
+        .frac-tag {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 400;
+            color: var(--color-muted);
+            letter-spacing: 0.05em;
+        }
+        .frac-line {
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.25);
+            margin: 1px 0;
+        }
+
         /* PAGE HEADER */
         .page-head {
             padding: 2px 2px 0;
@@ -252,7 +284,7 @@
 <div class="container">
     <header class="page-head">
         <h1>Time Allocation Calculator</h1>
-        <p>Enter the total time pool, then each item. Outputs split the pool <strong>by share</strong>.</p>
+        <p>Enter both overall times, then each item. Outputs split each overall time <strong>by share</strong>, in hours — top is Time 1, bottom is Time 2.</p>
     </header>
     
     <!-- SECTION 1: TOTAL TIME INPUTS -->
@@ -413,33 +445,58 @@
     <!-- SECTION 3: RESULTS -->
     <section>
         <h2 class="section-title">Calculated Proportional Output</h2>
+        <p class="results-note">Hours — top is the share of Overall Time 1, bottom is the share of Overall Time 2. The two times are never added together.</p>
         <div class="grid-2-col">
             <div id="results-left">
                 <div class="result-row">
                     <span class="result-label">Item A</span>
-                    <span class="result-value" id="out-a">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-a-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-a-2">0.0000</span></span>
+                    </span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Item B</span>
-                    <span class="result-value" id="out-b">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-b-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-b-2">0.0000</span></span>
+                    </span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Item C</span>
-                    <span class="result-value" id="out-c">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-c-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-c-2">0.0000</span></span>
+                    </span>
                 </div>
             </div>
             <div id="results-right">
                 <div class="result-row">
                     <span class="result-label">Item D</span>
-                    <span class="result-value" id="out-d">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-d-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-d-2">0.0000</span></span>
+                    </span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Item E</span>
-                    <span class="result-value" id="out-e">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-e-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-e-2">0.0000</span></span>
+                    </span>
                 </div>
                 <div class="result-row">
                     <span class="result-label">Item F</span>
-                    <span class="result-value" id="out-f">0.0000</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-f-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-f-2">0.0000</span></span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -448,7 +505,7 @@
     <p class="hint"><strong>On your home screen:</strong> in Safari, tap Share, then “Add to Home Screen” — it will open full-screen as <strong>Time Alloc</strong>, with no address bar.</p>
 
     <div class="footer">
-        TIME CALCULATOR v1.0
+        TIME CALCULATOR v1.1
     </div>
 </div>
 
@@ -472,12 +529,12 @@
         };
 
         const outputs = {
-            a: document.getElementById('out-a'),
-            b: document.getElementById('out-b'),
-            c: document.getElementById('out-c'),
-            d: document.getElementById('out-d'),
-            e: document.getElementById('out-e'),
-            f: document.getElementById('out-f'),
+            a: { t1: document.getElementById('out-a-1'), t2: document.getElementById('out-a-2') },
+            b: { t1: document.getElementById('out-b-1'), t2: document.getElementById('out-b-2') },
+            c: { t1: document.getElementById('out-c-1'), t2: document.getElementById('out-c-2') },
+            d: { t1: document.getElementById('out-d-1'), t2: document.getElementById('out-d-2') },
+            e: { t1: document.getElementById('out-e-1'), t2: document.getElementById('out-e-2') },
+            f: { t1: document.getElementById('out-f-1'), t2: document.getElementById('out-f-2') },
         };
 
         const allInputs = [
@@ -497,10 +554,13 @@
             return num.toFixed(4);
         };
 
-        // Core Logic
+        // Core Logic — Time 1 and Time 2 are calculated in parallel, never added together.
+        // Each item's share is its input minutes / sum of all item minutes.
+        // Each output is that share x that overall time, in hours (minutes / 60).
         const calculate = () => {
-            // 1. Calculate Total Time Pool (in minutes)
-            const totalMinutes = getMinutes(inputs.t1h, inputs.t1m) + getMinutes(inputs.t2h, inputs.t2m);
+            // 1. Overall times, kept separate, converted to hours
+            const total1Hours = getMinutes(inputs.t1h, inputs.t1m) / 60;
+            const total2Hours = getMinutes(inputs.t2h, inputs.t2m) / 60;
 
             // 2. Calculate Individual Minutes
             const items = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -513,26 +573,24 @@
                 totalIndividualMinutes += mins;
             });
 
-            // 3. Calculate Proportions
-            // Logic: If Total Time is 0, result is 0.
-            // If Total Individual is 0, result is 0.
-            // Else: (Individual / Total Individual) * Total Time
-            
+            // 3. Calculate Proportions, one pool at a time
+            // If an overall time is 0, or there are no item minutes, that side is 0 —
+            // independently of the other side.
             items.forEach(key => {
-                let result = 0;
-                
-                if (totalMinutes > 0 && totalIndividualMinutes > 0) {
-                    const ratio = itemMinutes[key] / totalIndividualMinutes;
-                    result = totalMinutes * ratio;
-                }
+                const ratio = totalIndividualMinutes > 0 ? itemMinutes[key] / totalIndividualMinutes : 0;
+                const result1 = total1Hours > 0 ? ratio * total1Hours : 0;
+                const result2 = total2Hours > 0 ? ratio * total2Hours : 0;
 
                 // Update DOM
-                outputs[key].textContent = formatNumber(result);
-                
+                outputs[key].t1.textContent = formatNumber(result1);
+                outputs[key].t2.textContent = formatNumber(result2);
+
                 // Visual feedback
-                outputs[key].classList.remove('updated');
-                void outputs[key].offsetWidth; // Trigger reflow
-                outputs[key].classList.add('updated');
+                [outputs[key].t1, outputs[key].t2].forEach(el => {
+                    el.classList.remove('updated');
+                    void el.offsetWidth; // Trigger reflow
+                    el.classList.add('updated');
+                });
             });
         };
 
