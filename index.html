@@ -128,9 +128,46 @@
         }
 
         input[type="number"]:focus {
-            outline: none;
             border-color: var(--color-accent);
             box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.1);
+        }
+
+        input[type="number"]:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        input[type="number"].invalid,
+        input[type="number"].invalid:focus {
+            border-color: var(--color-error);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .error-list {
+            color: var(--color-error);
+            font-size: 0.83rem;
+            margin: 0 0 var(--spacing-sm);
+            line-height: 1.5;
+        }
+
+        .error-list[hidden] {
+            display: none;
+        }
+
+        .error-list ul {
+            margin: 0;
+            padding-left: 1.2em;
         }
 
         .unit-label {
@@ -299,10 +336,12 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
+                        <label class="visually-hidden" for="total1-h">Overall Time 1 hours</label>
                         <input type="number" inputmode="numeric" id="total1-h" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
+                        <label class="visually-hidden" for="total1-m">Overall Time 1 minutes</label>
                         <input type="number" inputmode="numeric" id="total1-m" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
@@ -316,10 +355,12 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
+                        <label class="visually-hidden" for="total2-h">Overall Time 2 hours</label>
                         <input type="number" inputmode="numeric" id="total2-h" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
+                        <label class="visually-hidden" for="total2-m">Overall Time 2 minutes</label>
                         <input type="number" inputmode="numeric" id="total2-m" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
@@ -340,11 +381,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="a" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-a-h">Item A hours</label>
+                        <input type="number" inputmode="numeric" id="ind-a-h" class="ind-h" data-id="a" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="a" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-a-m">Item A minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-a-m" class="ind-m" data-id="a" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -358,11 +401,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="b" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-b-h">Item B hours</label>
+                        <input type="number" inputmode="numeric" id="ind-b-h" class="ind-h" data-id="b" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="b" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-b-m">Item B minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-b-m" class="ind-m" data-id="b" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -376,11 +421,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="c" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-c-h">Item C hours</label>
+                        <input type="number" inputmode="numeric" id="ind-c-h" class="ind-h" data-id="c" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="c" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-c-m">Item C minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-c-m" class="ind-m" data-id="c" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -394,11 +441,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="d" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-d-h">Item D hours</label>
+                        <input type="number" inputmode="numeric" id="ind-d-h" class="ind-h" data-id="d" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="d" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-d-m">Item D minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-d-m" class="ind-m" data-id="d" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -412,11 +461,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="e" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-e-h">Item E hours</label>
+                        <input type="number" inputmode="numeric" id="ind-e-h" class="ind-h" data-id="e" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="e" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-e-m">Item E minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-e-m" class="ind-m" data-id="e" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -430,11 +481,13 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-h" data-id="f" placeholder="0" min="0" step="1">
+                        <label class="visually-hidden" for="ind-f-h">Item F hours</label>
+                        <input type="number" inputmode="numeric" id="ind-f-h" class="ind-h" data-id="f" placeholder="0" min="0" step="1">
                         <span class="unit-label">Hrs</span>
                     </div>
                     <div class="input-wrapper">
-                        <input type="number" inputmode="numeric" class="ind-m" data-id="f" placeholder="0" min="0" max="59" step="1">
+                        <label class="visually-hidden" for="ind-f-m">Item F minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-f-m" class="ind-m" data-id="f" placeholder="0" min="0" max="59" step="1">
                         <span class="unit-label">Mins</span>
                     </div>
                 </div>
@@ -442,12 +495,14 @@
         </div>
     </section>
 
+    <div id="share-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
+
     <!-- SECTION 3: RESULTS -->
     <section>
         <h2 class="section-title">Calculated Proportional Output</h2>
         <p class="results-note">Hours — top is the share of Overall Time 1, bottom is the share of Overall Time 2. The two times are never added together.</p>
         <div class="grid-2-col">
-            <div id="results-left">
+            <div id="results-left" aria-live="polite">
                 <div class="result-row">
                     <span class="result-label">Item A</span>
                     <span class="result-value frac">
@@ -473,7 +528,7 @@
                     </span>
                 </div>
             </div>
-            <div id="results-right">
+            <div id="results-right" aria-live="polite">
                 <div class="result-row">
                     <span class="result-label">Item D</span>
                     <span class="result-value frac">
@@ -514,7 +569,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="a" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-a-sec">Item A production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-a-sec" class="alloc-sec" data-id="a" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -526,7 +582,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="b" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-b-sec">Item B production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-b-sec" class="alloc-sec" data-id="b" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -538,7 +595,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="c" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-c-sec">Item C production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-c-sec" class="alloc-sec" data-id="c" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -550,7 +608,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="d" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-d-sec">Item D production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-d-sec" class="alloc-sec" data-id="d" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -562,7 +621,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="e" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-e-sec">Item E production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-e-sec" class="alloc-sec" data-id="e" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -574,7 +634,8 @@
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
-                        <input type="number" inputmode="decimal" step="any" class="alloc-sec" data-id="f" placeholder="0" min="0">
+                        <label class="visually-hidden" for="alloc-f-sec">Item F production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-f-sec" class="alloc-sec" data-id="f" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
                 </div>
@@ -587,14 +648,16 @@
             </div>
             <div class="time-inputs">
                 <div class="input-wrapper">
-                    <input type="number" inputmode="decimal" step="any" id="alloc-hours" placeholder="0" min="0">
+                    <label class="visually-hidden" for="alloc-hours">Total hours to fill</label>
+                        <input type="number" inputmode="decimal" id="alloc-hours" placeholder="0" min="0" step="any">
                     <span class="unit-label">Hrs</span>
                 </div>
             </div>
         </div>
+        <div id="alloc-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
         <h3 class="section-title">Hours Allocated</h3>
         <div class="grid-2-col">
-            <div id="alloc-results-left">
+            <div id="alloc-results-left" aria-live="polite">
                 <div class="result-row">
                     <span class="result-label">Item A</span>
                     <span class="result-value" id="alloc-a">0.0000</span>
@@ -608,7 +671,7 @@
                     <span class="result-value" id="alloc-c">0.0000</span>
                 </div>
             </div>
-            <div id="alloc-results-right">
+            <div id="alloc-results-right" aria-live="polite">
                 <div class="result-row">
                     <span class="result-label">Item D</span>
                     <span class="result-value" id="alloc-d">0.0000</span>
@@ -633,151 +696,7 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // DOM Elements
-        const inputs = {
-            t1h: document.getElementById('total1-h'),
-            t1m: document.getElementById('total1-m'),
-            t2h: document.getElementById('total2-h'),
-            t2m: document.getElementById('total2-m'),
-        };
-
-        const individualInputs = {
-            a: { h: document.querySelector('input[data-id="a"].ind-h'), m: document.querySelector('input[data-id="a"].ind-m') },
-            b: { h: document.querySelector('input[data-id="b"].ind-h'), m: document.querySelector('input[data-id="b"].ind-m') },
-            c: { h: document.querySelector('input[data-id="c"].ind-h'), m: document.querySelector('input[data-id="c"].ind-m') },
-            d: { h: document.querySelector('input[data-id="d"].ind-h'), m: document.querySelector('input[data-id="d"].ind-m') },
-            e: { h: document.querySelector('input[data-id="e"].ind-h'), m: document.querySelector('input[data-id="e"].ind-m') },
-            f: { h: document.querySelector('input[data-id="f"].ind-h'), m: document.querySelector('input[data-id="f"].ind-m') },
-        };
-
-        const outputs = {
-            a: { t1: document.getElementById('out-a-1'), t2: document.getElementById('out-a-2') },
-            b: { t1: document.getElementById('out-b-1'), t2: document.getElementById('out-b-2') },
-            c: { t1: document.getElementById('out-c-1'), t2: document.getElementById('out-c-2') },
-            d: { t1: document.getElementById('out-d-1'), t2: document.getElementById('out-d-2') },
-            e: { t1: document.getElementById('out-e-1'), t2: document.getElementById('out-e-2') },
-            f: { t1: document.getElementById('out-f-1'), t2: document.getElementById('out-f-2') },
-        };
-
-        const allInputs = [
-            ...Object.values(inputs),
-            ...Object.values(individualInputs).flatMap(obj => [obj.h, obj.m])
-        ];
-
-        // Helper: Get total minutes from two inputs
-        const getMinutes = (hInput, mInput) => {
-            const h = parseFloat(hInput.value) || 0;
-            const m = parseFloat(mInput.value) || 0;
-            return (h * 60) + m;
-        };
-
-        // Helper: Format number to 4 decimal places
-        const formatNumber = (num) => {
-            return num.toFixed(4);
-        };
-
-        // Core Logic — Time 1 and Time 2 are calculated in parallel, never added together.
-        // Each item's share is its input minutes / sum of all item minutes.
-        // Each output is that share x that overall time, in hours (minutes / 60).
-        const calculate = () => {
-            // 1. Overall times, kept separate, converted to hours
-            const total1Hours = getMinutes(inputs.t1h, inputs.t1m) / 60;
-            const total2Hours = getMinutes(inputs.t2h, inputs.t2m) / 60;
-
-            // 2. Calculate Individual Minutes
-            const items = ['a', 'b', 'c', 'd', 'e', 'f'];
-            let itemMinutes = {};
-            let totalIndividualMinutes = 0;
-
-            items.forEach(key => {
-                const mins = getMinutes(individualInputs[key].h, individualInputs[key].m);
-                itemMinutes[key] = mins;
-                totalIndividualMinutes += mins;
-            });
-
-            // 3. Calculate Proportions, one pool at a time
-            // If an overall time is 0, or there are no item minutes, that side is 0 —
-            // independently of the other side.
-            items.forEach(key => {
-                const ratio = totalIndividualMinutes > 0 ? itemMinutes[key] / totalIndividualMinutes : 0;
-                const result1 = total1Hours > 0 ? ratio * total1Hours : 0;
-                const result2 = total2Hours > 0 ? ratio * total2Hours : 0;
-
-                // Update DOM
-                outputs[key].t1.textContent = formatNumber(result1);
-                outputs[key].t2.textContent = formatNumber(result2);
-
-                // Visual feedback
-                [outputs[key].t1, outputs[key].t2].forEach(el => {
-                    el.classList.remove('updated');
-                    void el.offsetWidth; // Trigger reflow
-                    el.classList.add('updated');
-                });
-            });
-        };
-
-        // Proportional allocation — split the total hours by production time (decimals allowed)
-        const allocSecInputs = {
-            a: document.querySelector('input.alloc-sec[data-id="a"]'),
-            b: document.querySelector('input.alloc-sec[data-id="b"]'),
-            c: document.querySelector('input.alloc-sec[data-id="c"]'),
-            d: document.querySelector('input.alloc-sec[data-id="d"]'),
-            e: document.querySelector('input.alloc-sec[data-id="e"]'),
-            f: document.querySelector('input.alloc-sec[data-id="f"]'),
-        };
-        const allocHoursInput = document.getElementById('alloc-hours');
-        const allocOutputs = {
-            a: document.getElementById('alloc-a'),
-            b: document.getElementById('alloc-b'),
-            c: document.getElementById('alloc-c'),
-            d: document.getElementById('alloc-d'),
-            e: document.getElementById('alloc-e'),
-            f: document.getElementById('alloc-f'),
-        };
-        const getSeconds = (input) => parseFloat(input.value) || 0;
-
-        // Each item's share of the total hours is its seconds / sum of all seconds.
-        // The output is that share of the hours — no further calculation.
-        const calculateAlloc = () => {
-            const keys = ['a', 'b', 'c', 'd', 'e', 'f'];
-            let totalSeconds = 0;
-            const secs = {};
-            keys.forEach(key => {
-                secs[key] = getSeconds(allocSecInputs[key]);
-                totalSeconds += secs[key];
-            });
-            const totalHours = parseFloat(allocHoursInput.value) || 0;
-
-            keys.forEach(key => {
-                let hours = 0;
-                if (totalSeconds > 0 && totalHours > 0) {
-                    hours = (secs[key] / totalSeconds) * totalHours;
-                }
-                allocOutputs[key].textContent = formatNumber(hours);
-                allocOutputs[key].classList.remove('updated');
-                void allocOutputs[key].offsetWidth; // Trigger reflow
-                allocOutputs[key].classList.add('updated');
-            });
-        };
-
-        // Event Listeners
-        allInputs.forEach(input => {
-            input.addEventListener('input', calculate);
-            input.addEventListener('change', calculate);
-        });
-        const allocAllInputs = [...Object.values(allocSecInputs), allocHoursInput];
-        allocAllInputs.forEach(input => {
-            input.addEventListener('input', calculateAlloc);
-            input.addEventListener('change', calculateAlloc);
-        });
-
-        // Initial calculation on load
-        calculate();
-        calculateAlloc();
-    });
-</script>
+<script type="module" src="app.js"></script>
 
 </body>
 </html>
