@@ -1,9 +1,4 @@
 # Lint, unit tests, and static checks on every pull request and push.
-# guard-main only runs for work targeting main. It will not fire on
-# commits to main until this workflow file also exists on main (GitHub
-# Actions reads workflows from the branch that received the event).
-# Switching GitHub Pages to deploy from main is a repo-settings change
-# and is left to the owner.
 name: CI
 
 on:
@@ -28,12 +23,3 @@ jobs:
         run: npm run check:assets
       - name: Every input has an accessible name
         run: npm run check:a11y
-
-  guard-main:
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'pull_request' && github.base_ref == 'main')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Fail if app files or images were committed to main
-        run: bash scripts/check-main-branch.sh .
-        # Delete this job after moving the app onto main and deploying Pages from main.
