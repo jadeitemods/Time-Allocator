@@ -296,6 +296,14 @@
             gap: var(--spacing-xs);
             border-bottom: 1px solid var(--color-surface);
             margin-top: calc(-1 * var(--spacing-md));
+            /* Stays reachable on long pages (phones) while scrolling. */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--color-bg);
+            margin-left: calc(-1 * var(--spacing-md));
+            margin-right: calc(-1 * var(--spacing-md));
+            padding: env(safe-area-inset-top) var(--spacing-md) 0;
         }
         .tab {
             flex: 1 1 0;
@@ -387,7 +395,6 @@
     <nav class="tabs" role="tablist" aria-label="Calculators">
         <button type="button" role="tab" class="tab" id="tab-split" aria-controls="panel-split" aria-selected="true">Time Allocation</button>
         <button type="button" role="tab" class="tab" id="tab-batch" aria-controls="panel-batch" aria-selected="false" tabindex="-1">Batch Production</button>
-        <button type="button" role="tab" class="tab" id="tab-convert" aria-controls="panel-convert" aria-selected="false" tabindex="-1">Hrs → Min</button>
     </nav>
 
     <div class="tab-panel" role="tabpanel" id="panel-split" aria-labelledby="tab-split">
@@ -822,13 +829,11 @@
         </div>
     </section>
 
-    </div>
 
-    <div class="tab-panel" role="tabpanel" id="panel-convert" aria-labelledby="tab-convert" hidden>
-    <!-- SECTION 5: HOURS TO MINUTES -->
+    <!-- SECTION 5: HOURS TO MINUTES (helper for entering precise Total Hours) -->
     <section>
         <h2 class="section-title">Hours to Minutes</h2>
-        <p class="results-note">Decimal hours as minutes and seconds, rounded to the nearest second.</p>
+        <p class="results-note">Check a decimal Total Hours value: shown as minutes and seconds, rounded to the nearest second.</p>
         <div class="input-group">
             <div class="label-row">
                 <span class="label">Hours</span>

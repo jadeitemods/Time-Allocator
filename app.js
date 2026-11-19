@@ -287,14 +287,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 /**
  * Accessible tabs (WAI-ARIA tabs pattern, automatic activation).
- * The open tab is kept in the URL hash (#split, #batch, #convert) so a
- * bookmark or home-screen reload returns to it.
+ * The open tab is kept in the URL hash (#split, #batch) so a bookmark
+ * or home-screen reload returns to it. The tab bar is sticky, so when a
+ * tab is chosen while scrolled down, jump back to the top of its panel.
  */
 function setUpTabs() {
   const tabs = [...document.querySelectorAll('[role="tab"]')];
   const nameOf = (tab) => tab.id.replace(/^tab-/, '');
 
+  const bar = document.querySelector('[role="tablist"]');
   const select = (tab, { focus = false, updateHash = true } = {}) => {
+    const changed = tab.getAttribute('aria-selected') !== 'true';
     for (const t of tabs) {
       const on = t === tab;
       t.setAttribute('aria-selected', String(on));
@@ -302,6 +305,13 @@ function setUpTabs() {
       document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
     }
     if (focus) tab.focus();
+    if (changed) {
+      // Measure from the panel, not the bar: a stuck sticky bar reports
+      // its stuck position. Land with the panel's top just under the bar.
+      const panel = document.getElementById(tab.getAttribute('aria-controls'));
+      const target = panel.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 16;
+      if (window.scrollY > target) window.scrollTo(0, Math.max(0, target));
+    }
     if (updateHash) history.replaceState(null, '', `#${nameOf(tab)}`);
   };
 
