@@ -3,6 +3,9 @@ import {
   hoursFromHourMinute,
   allocateProportional,
   formatShare,
+  hoursToMinutesSeconds,
+  formatMinutesSeconds,
+  batchesProduced,
 } from './lib/allocate.js';
 
 const ITEMS = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -92,6 +95,33 @@ function writeShares(nodes, shares) {
   });
 }
 
+function flash(el, text) {
+  el.textContent = text;
+  el.classList.remove('updated');
+  void el.offsetWidth;
+  el.classList.add('updated');
+}
+
+/** Seconds as "M min S s", rounded to the nearest second. */
+function formatSeconds(seconds) {
+  return formatMinutesSeconds(hoursToMinutesSeconds(seconds / 3600));
+}
+
+function readQuantity(input, label) {
+  // Blank means one per batch, so the section works without touching Qty.
+  if (input.value.trim() === '') {
+    setInvalid(input, false);
+    return { ok: true, value: 1 };
+  }
+  const result = readField(input, label);
+  if (!result.ok) return result;
+  if (!Number.isInteger(result.value)) {
+    setInvalid(input, true);
+    return { ok: false, message: `${label} must be a whole number.` };
+  }
+  return result;
+}
+
 function zeroShares(count) {
   return Array.from({ length: count }, () => 0);
 }
@@ -131,6 +161,19 @@ document.addEventListener('DOMContentLoaded', () => {
     ITEMS.map((key) => [key, document.getElementById(`alloc-${key}`)]),
   );
   const allocErrorRegion = document.getElementById('alloc-errors');
+  const allocQtyInputs = Object.fromEntries(
+    ITEMS.map((key) => [key, document.getElementById(`alloc-${key}-qty`)]),
+  );
+  const countOutputs = Object.fromEntries(
+    ITEMS.map((key) => [key, document.getElementById(`count-${key}`)]),
+  );
+  const countBatches = document.getElementById('count-batches');
+  const countBatchTime = document.getElementById('count-batch-time');
+  const countLeftover = document.getElementById('count-leftover');
+
+  const convertInput = document.getElementById('convert-hours');
+  const convertOutput = document.getElementById('convert-out');
+  const convertErrorRegion = document.getElementById('convert-errors');
 
   const calculateShare = () => {
     const errors = [];
@@ -170,24 +213,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const calculateAlloc = () => {
     const errors = [];
-    const weights = [];
+    const secs = [];
+    const qtys = [];
     for (const key of ITEMS) {
-      const result = readField(allocSecInputs[key], `${ITEM_NAME[key]} production time`);
-      if (!result.ok) {
-        errors.push(result.message);
-        weights.push(0);
-      } else {
-        weights.push(result.value);
-      }
+      const sec = readField(allocSecInputs[key], `${ITEM_NAME[key]} production time`);
+      if (!sec.ok) errors.push(sec.message);
+      secs.push(sec.ok ? sec.value : 0);
+      const qty = readQuantity(allocQtyInputs[key], `${ITEM_NAME[key]} quantity per batch`);
+      if (!qty.ok) errors.push(qty.message);
+      qtys.push(qty.ok ? qty.value : 0);
     }
     const total = readField(allocHoursInput, 'Total hours');
     if (!total.ok) errors.push(total.message);
 
     renderErrors(allocErrorRegion, errors);
+    // Each item's weight is its time per batch, so Hours Allocated and
+    // Items Produced follow the same proportions.
+    const weights = secs.map((sec, i) => sec * qtys[i]);
     const shares = errors.length
       ? zeroShares(ITEMS.length)
       : allocateProportional(weights, total.value);
     writeShares(allocOutputs, shares);
+
+    const produced = errors.length
+      ? batchesProduced(ITEMS.map(() => 0), ITEMS.map(() => 0), 0)
+      : batchesProduced(secs, qtys, total.value);
+    ITEMS.forEach((key, i) => flash(countOutputs[key], String(produced.counts[i])));
+    flash(countBatches, String(produced.batches));
+    flash(countBatchTime, formatSeconds(produced.batchSeconds));
+    flash(countLeftover, formatSeconds(produced.leftoverSeconds));
+  };
+
+  const calculateConvert = () => {
+    const hours = readField(convertInput, 'Hours');
+    renderErrors(convertErrorRegion, hours.ok ? [] : [hours.message]);
+    const text = hours.ok
+      ? formatMinutesSeconds(hoursToMinutesSeconds(hours.value))
+      : formatMinutesSeconds({ minutes: 0, seconds: 0 });
+    flash(convertOutput, text);
   };
 
   const shareAllInputs = [
@@ -198,12 +261,20 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', calculateShare);
     input.addEventListener('change', calculateShare);
   });
-  const allocAllInputs = [...Object.values(allocSecInputs), allocHoursInput];
+  const allocAllInputs = [
+    ...Object.values(allocSecInputs),
+    ...Object.values(allocQtyInputs),
+    allocHoursInput,
+  ];
   allocAllInputs.forEach((input) => {
     input.addEventListener('input', calculateAlloc);
     input.addEventListener('change', calculateAlloc);
   });
 
+  convertInput.addEventListener('input', calculateConvert);
+  convertInput.addEventListener('change', calculateConvert);
+
   calculateShare();
   calculateAlloc();
+  calculateConvert();
 });

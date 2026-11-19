@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="description" content="Split time across items by their share, in hours." />
+<meta name="description" content="Split time across items by their share, count items produced in whole batches, and convert hours to minutes." />
 <meta name="color-scheme" content="dark" />
 <meta name="theme-color" content="#0F172A" />
 <!-- Home-screen web app (iOS + Android) -->
@@ -560,12 +560,12 @@
     <!-- SECTION 4: PROPORTIONAL ALLOCATION -->
     <section>
         <h2 class="section-title">Proportional Allocation</h2>
-        <p class="results-note">Each item's production time in seconds, then the total hours. The hours are split between the items in proportion to their production times — each output is that item's share, in hours.</p>
-        <div class="grid-2-col">
+        <p class="results-note">Each item's production time in seconds, how many of it go into one batch (blank = 1), then the total hours. The hours are split between the items in proportion to their time per batch (seconds × qty) — each output is that item's share, in hours. Items Produced counts whole items from complete batches only.</p>
+        <div class="grid-2-col-mobile">
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item A</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
@@ -573,12 +573,17 @@
                         <input type="number" inputmode="decimal" id="alloc-a-sec" class="alloc-sec" data-id="a" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-a-qty">Item A quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-a-qty" class="alloc-qty" data-id="a" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
                 </div>
             </div>
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item B</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
@@ -586,12 +591,17 @@
                         <input type="number" inputmode="decimal" id="alloc-b-sec" class="alloc-sec" data-id="b" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-b-qty">Item B quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-b-qty" class="alloc-qty" data-id="b" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
                 </div>
             </div>
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item C</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
@@ -599,12 +609,17 @@
                         <input type="number" inputmode="decimal" id="alloc-c-sec" class="alloc-sec" data-id="c" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-c-qty">Item C quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-c-qty" class="alloc-qty" data-id="c" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
                 </div>
             </div>
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item D</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
@@ -612,12 +627,17 @@
                         <input type="number" inputmode="decimal" id="alloc-d-sec" class="alloc-sec" data-id="d" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-d-qty">Item D quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-d-qty" class="alloc-qty" data-id="d" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
                 </div>
             </div>
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item E</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
@@ -625,18 +645,28 @@
                         <input type="number" inputmode="decimal" id="alloc-e-sec" class="alloc-sec" data-id="e" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
                     </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-e-qty">Item E quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-e-qty" class="alloc-qty" data-id="e" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
                 </div>
             </div>
             <div class="input-group">
                 <div class="label-row">
                     <span class="label">Item F</span>
-                    <span class="sub-label">Production time</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
                 </div>
                 <div class="time-inputs">
                     <div class="input-wrapper">
                         <label class="visually-hidden" for="alloc-f-sec">Item F production time in seconds</label>
                         <input type="number" inputmode="decimal" id="alloc-f-sec" class="alloc-sec" data-id="f" placeholder="0" min="0" step="any">
                         <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-f-qty">Item F quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-f-qty" class="alloc-qty" data-id="f" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
                     </div>
                 </div>
             </div>
@@ -686,13 +716,82 @@
                 </div>
             </div>
         </div>
+        <h3 class="section-title">Items Produced</h3>
+        <div class="grid-2-col">
+            <div id="count-results-left" aria-live="polite">
+                <div class="result-row">
+                    <span class="result-label">Item A</span>
+                    <span class="result-value" id="count-a">0</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item B</span>
+                    <span class="result-value" id="count-b">0</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item C</span>
+                    <span class="result-value" id="count-c">0</span>
+                </div>
+            </div>
+            <div id="count-results-right" aria-live="polite">
+                <div class="result-row">
+                    <span class="result-label">Item D</span>
+                    <span class="result-value" id="count-d">0</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item E</span>
+                    <span class="result-value" id="count-e">0</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item F</span>
+                    <span class="result-value" id="count-f">0</span>
+                </div>
+            </div>
+        </div>
+        <div aria-live="polite">
+            <div class="result-row">
+                <span class="result-label">Complete batches</span>
+                <span class="result-value" id="count-batches">0</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Time per batch</span>
+                <span class="result-value" id="count-batch-time">0 min 0 s</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Leftover time</span>
+                <span class="result-value" id="count-leftover">0 min 0 s</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: HOURS TO MINUTES -->
+    <section>
+        <h2 class="section-title">Hours to Minutes</h2>
+        <p class="results-note">Decimal hours as minutes and seconds, rounded to the nearest second.</p>
+        <div class="input-group">
+            <div class="label-row">
+                <span class="label">Hours</span>
+                <span class="sub-label">Decimals allowed</span>
+            </div>
+            <div class="time-inputs">
+                <div class="input-wrapper">
+                    <label class="visually-hidden" for="convert-hours">Hours to convert to minutes</label>
+                    <input type="number" inputmode="decimal" id="convert-hours" placeholder="0" min="0" step="any">
+                    <span class="unit-label">Hrs</span>
+                </div>
+            </div>
+        </div>
+        <div id="convert-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
+        <div class="result-row" aria-live="polite">
+            <span class="result-label">Minutes</span>
+            <span class="result-value" id="convert-out">0 min 0 s</span>
+        </div>
     </section>
 
     <p class="hint">
 <strong>On your home screen:</strong> in Safari, tap Share, then “Add to Home Screen” — it will open full-screen as <strong>Time Alloc</strong>, with no address bar.</p>
 
     <div class="footer">
-        TIME CALCULATOR v1.3
+        TIME CALCULATOR v1.4
     </div>
 </div>
 
