@@ -289,6 +289,67 @@
         }
         .hint strong { color: var(--color-text); font-weight: 600; }
 
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            border-bottom: 1px solid var(--color-surface);
+            margin-top: calc(-1 * var(--spacing-md));
+        }
+        .tab {
+            flex: 1 1 0;
+            min-width: 0;
+            line-height: 1.2;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            color: var(--color-muted);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.7rem 0.5rem;
+            min-height: 44px;
+            cursor: pointer;
+            transition: color var(--transition), border-color var(--transition);
+        }
+        .tab:hover { color: var(--color-text); }
+        .tab[aria-selected="true"] {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+        }
+        .tab-panel {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        .tab-panel[hidden] { display: none; }
+        .panel-intro {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-bottom: calc(-1 * var(--spacing-md));
+        }
+        .panel-intro strong { color: var(--color-accent); font-weight: 600; }
+
+        /* STACKED RESULT: share on top, item count underneath */
+        .result-row-stacked {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.15rem;
+        }
+        .result-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .result-sub {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: var(--color-muted);
+            text-align: right;
+        }
+
         /* FOOTER */
         .footer {
             margin-top: var(--spacing-lg);
@@ -321,8 +382,16 @@
 <div class="container">
     <header class="page-head">
         <h1>Time Allocator</h1>
-        <p>Enter both overall times, then each item. Outputs split each overall time <strong>by share</strong>, in hours — top is Time 1, bottom is Time 2.</p>
     </header>
+
+    <nav class="tabs" role="tablist" aria-label="Calculators">
+        <button type="button" role="tab" class="tab" id="tab-split" aria-controls="panel-split" aria-selected="true">Time Allocation</button>
+        <button type="button" role="tab" class="tab" id="tab-batch" aria-controls="panel-batch" aria-selected="false" tabindex="-1">Batch Production</button>
+        <button type="button" role="tab" class="tab" id="tab-convert" aria-controls="panel-convert" aria-selected="false" tabindex="-1">Hrs → Min</button>
+    </nav>
+
+    <div class="tab-panel" role="tabpanel" id="panel-split" aria-labelledby="tab-split">
+    <p class="panel-intro">Enter both overall times, then each item. Outputs split each overall time <strong>by share</strong>, in hours — top is Time 1, bottom is Time 2.</p>
     
     <!-- SECTION 1: TOTAL TIME INPUTS -->
     <section>
@@ -557,10 +626,13 @@
         </div>
     </section>
 
+    </div>
+
+    <div class="tab-panel" role="tabpanel" id="panel-batch" aria-labelledby="tab-batch" hidden>
     <!-- SECTION 4: PROPORTIONAL ALLOCATION -->
     <section>
         <h2 class="section-title">Proportional Allocation</h2>
-        <p class="results-note">Each item's production time in seconds, how many of it go into one batch (blank = 1), then the total hours. The hours are split between the items in proportion to their time per batch (seconds × qty) — each output is that item's share, in hours. Items Produced counts whole items from complete batches only.</p>
+        <p class="results-note">Each item's production time in seconds, how many of it go into one batch (blank = 1), then the total hours. The hours are split between the items in proportion to their time per batch (seconds × qty) — each output is that item's share, in hours. Under each share is how many whole items it makes, counting complete batches only.</p>
         <div class="grid-2-col-mobile">
             <div class="input-group">
                 <div class="label-row">
@@ -685,65 +757,52 @@
             </div>
         </div>
         <div id="alloc-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
-        <h3 class="section-title">Hours Allocated</h3>
+        <h3 class="section-title">Hours Allocated · Items Produced</h3>
         <div class="grid-2-col">
             <div id="alloc-results-left" aria-live="polite">
-                <div class="result-row">
-                    <span class="result-label">Item A</span>
-                    <span class="result-value" id="alloc-a">0.0000</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item A</span>
+                        <span class="result-value" id="alloc-a">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-a">0 items required for 0.0000 hours</span>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Item B</span>
-                    <span class="result-value" id="alloc-b">0.0000</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item B</span>
+                        <span class="result-value" id="alloc-b">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-b">0 items required for 0.0000 hours</span>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Item C</span>
-                    <span class="result-value" id="alloc-c">0.0000</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item C</span>
+                        <span class="result-value" id="alloc-c">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-c">0 items required for 0.0000 hours</span>
                 </div>
             </div>
             <div id="alloc-results-right" aria-live="polite">
-                <div class="result-row">
-                    <span class="result-label">Item D</span>
-                    <span class="result-value" id="alloc-d">0.0000</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item D</span>
+                        <span class="result-value" id="alloc-d">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-d">0 items required for 0.0000 hours</span>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Item E</span>
-                    <span class="result-value" id="alloc-e">0.0000</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item E</span>
+                        <span class="result-value" id="alloc-e">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-e">0 items required for 0.0000 hours</span>
                 </div>
-                <div class="result-row">
-                    <span class="result-label">Item F</span>
-                    <span class="result-value" id="alloc-f">0.0000</span>
-                </div>
-            </div>
-        </div>
-        <h3 class="section-title">Items Produced</h3>
-        <div class="grid-2-col">
-            <div id="count-results-left" aria-live="polite">
-                <div class="result-row">
-                    <span class="result-label">Item A</span>
-                    <span class="result-value" id="count-a">0</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Item B</span>
-                    <span class="result-value" id="count-b">0</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Item C</span>
-                    <span class="result-value" id="count-c">0</span>
-                </div>
-            </div>
-            <div id="count-results-right" aria-live="polite">
-                <div class="result-row">
-                    <span class="result-label">Item D</span>
-                    <span class="result-value" id="count-d">0</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Item E</span>
-                    <span class="result-value" id="count-e">0</span>
-                </div>
-                <div class="result-row">
-                    <span class="result-label">Item F</span>
-                    <span class="result-value" id="count-f">0</span>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item F</span>
+                        <span class="result-value" id="alloc-f">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-f">0 items required for 0.0000 hours</span>
                 </div>
             </div>
         </div>
@@ -763,6 +822,9 @@
         </div>
     </section>
 
+    </div>
+
+    <div class="tab-panel" role="tabpanel" id="panel-convert" aria-labelledby="tab-convert" hidden>
     <!-- SECTION 5: HOURS TO MINUTES -->
     <section>
         <h2 class="section-title">Hours to Minutes</h2>
@@ -786,6 +848,7 @@
             <span class="result-value" id="convert-out">0 min 0 s</span>
         </div>
     </section>
+    </div>
 
     <p class="hint">
 <strong>On your home screen:</strong> in Safari, tap Share, then “Add to Home Screen” — it will open full-screen as <strong>Time Alloc</strong>, with no address bar.</p>

@@ -238,7 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const produced = errors.length
       ? batchesProduced(ITEMS.map(() => 0), ITEMS.map(() => 0), 0)
       : batchesProduced(secs, qtys, total.value);
-    ITEMS.forEach((key, i) => flash(countOutputs[key], String(produced.counts[i])));
+    ITEMS.forEach((key, i) => {
+      const n = produced.counts[i];
+      const hours = formatShare(shares[i]);
+      flash(countOutputs[key], `${n} ${n === 1 ? 'item' : 'items'} required for ${hours} hours`);
+    });
     flash(countBatches, String(produced.batches));
     flash(countBatchTime, formatSeconds(produced.batchSeconds));
     flash(countLeftover, formatSeconds(produced.leftoverSeconds));
@@ -274,7 +278,53 @@ document.addEventListener('DOMContentLoaded', () => {
   convertInput.addEventListener('input', calculateConvert);
   convertInput.addEventListener('change', calculateConvert);
 
+  setUpTabs();
+
   calculateShare();
   calculateAlloc();
   calculateConvert();
 });
+
+/**
+ * Accessible tabs (WAI-ARIA tabs pattern, automatic activation).
+ * The open tab is kept in the URL hash (#split, #batch, #convert) so a
+ * bookmark or home-screen reload returns to it.
+ */
+function setUpTabs() {
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const nameOf = (tab) => tab.id.replace(/^tab-/, '');
+
+  const select = (tab, { focus = false, updateHash = true } = {}) => {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    }
+    if (focus) tab.focus();
+    if (updateHash) history.replaceState(null, '', `#${nameOf(tab)}`);
+  };
+
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', (event) => {
+      const moves = {
+        ArrowRight: (i + 1) % tabs.length,
+        ArrowLeft: (i - 1 + tabs.length) % tabs.length,
+        Home: 0,
+        End: tabs.length - 1,
+      };
+      if (!(event.key in moves)) return;
+      event.preventDefault();
+      select(tabs[moves[event.key]], { focus: true });
+    });
+  });
+
+  const fromHash = () => tabs.find((t) => `#${nameOf(t)}` === location.hash);
+  const initial = fromHash();
+  if (initial) select(initial, { updateHash: false });
+  window.addEventListener('hashchange', () => {
+    const tab = fromHash();
+    if (tab) select(tab, { updateHash: false });
+  });
+}
