@@ -1,0 +1,14 @@
+{
+  "name": "time-allocator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test lib/allocate.test.js",
+    "lint": "eslint app.js lib/allocate.test.js scripts eslint.config.js",
+    "check:assets": "node scripts/check-manifest-assets.mjs .",
+    "check:a11y": "node scripts/check-accessible-names.mjs ."
+  },
+  "devDependencies": {
+    "eslint": "^10.15.0"
+  }
+}

@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="Split time across items by their share, count items produced in whole batches, and convert hours to minutes." />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0F172A" />
+<!-- Home-screen web app (iOS + Android) -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Time Alloc" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="time-alloc-manifest.json" />
+<link rel="apple-touch-icon" sizes="180x180" href="IMG_5933.png" />
+<link rel="icon" href="data:," />
+    <title>Time Allocator</title>
+    <style>
+        /* DESIGN SYSTEM IMPLEMENTATION */
+        :root {
+            /* Palette */
+            --color-bg: #0F172A;
+            --color-surface: #1E293B;
+            --color-text: #F8FAFC;
+            --color-muted: #94A3B8;
+            --color-accent: #39FF14;
+            --color-error: #EF4444;
+
+            /* Type */
+            --font-display: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+            /* Spacing & Layout */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2.5rem;
+            
+            --border-radius: 4px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            padding: calc(var(--spacing-md) + env(safe-area-inset-top)) var(--spacing-md) calc(var(--spacing-md) + env(safe-area-inset-bottom));
+        }
+
+        /* UTILITIES */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .section-title {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--color-muted);
+            border-bottom: 1px solid var(--color-surface);
+            padding-bottom: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        /* INPUT GROUPS */
+        .input-group {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .label {
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .sub-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--color-muted);
+        }
+
+        /* TIME INPUTS */
+        .time-inputs {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--color-surface);
+            border: 1px solid transparent;
+            color: var(--color-text);
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            transition: border-color var(--transition);
+            appearance: textfield; /* Remove spinners default */
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 2px rgba(57, 255, 20, 0.1);
+        }
+
+        input[type="number"]:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        input[type="number"].invalid,
+        input[type="number"].invalid:focus {
+            border-color: var(--color-error);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .error-list {
+            color: var(--color-error);
+            font-size: 0.83rem;
+            margin: 0 0 var(--spacing-sm);
+            line-height: 1.5;
+        }
+
+        .error-list[hidden] {
+            display: none;
+        }
+
+        .error-list ul {
+            margin: 0;
+            padding-left: 1.2em;
+        }
+
+        .unit-label {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            pointer-events: none;
+            text-transform: uppercase;
+        }
+
+        /* GRID LAYOUTS */
+        .grid-2-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        .grid-3-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-sm);
+        }
+
+        .grid-2-col-mobile {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (min-width: 640px) {
+            .grid-2-col-mobile {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* RESULTS */
+        .result-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--color-muted);
+            font-size: 0.875rem;
+        }
+
+        .result-value {
+            font-family: var(--font-display);
+            color: var(--color-accent);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* FRACTION OUTPUTS (Time 1 over Time 2, in hours) */
+        .results-note {
+            font-size: 0.83rem;
+            color: var(--color-muted);
+            margin-bottom: var(--spacing-sm);
+        }
+        .result-value.frac {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            line-height: 1.35;
+            font-size: 1.125rem;
+        }
+        .frac-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+        }
+        .frac-tag {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 400;
+            color: var(--color-muted);
+            letter-spacing: 0.05em;
+        }
+        .frac-line {
+            width: 100%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.25);
+            margin: 1px 0;
+        }
+
+        /* PAGE HEADER */
+        .page-head {
+            padding: 2px 2px 0;
+        }
+        .page-head h1 {
+            font-size: 1.35rem;
+            line-height: 1.25;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+        .page-head p {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .page-head p strong { color: var(--color-accent); font-weight: 600; }
+
+        .hint {
+            font-size: 0.83rem;
+            color: var(--color-muted);
+            line-height: 1.55;
+            opacity: 0.8;
+        }
+        .hint strong { color: var(--color-text); font-weight: 600; }
+
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: var(--spacing-xs);
+            border-bottom: 1px solid var(--color-surface);
+            margin-top: calc(-1 * var(--spacing-md));
+            /* Stays reachable on long pages (phones) while scrolling. */
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--color-bg);
+            margin-left: calc(-1 * var(--spacing-md));
+            margin-right: calc(-1 * var(--spacing-md));
+            padding: env(safe-area-inset-top) var(--spacing-md) 0;
+        }
+        .tab {
+            flex: 1 1 0;
+            min-width: 0;
+            line-height: 1.2;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            color: var(--color-muted);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.7rem 0.5rem;
+            min-height: 44px;
+            cursor: pointer;
+            transition: color var(--transition), border-color var(--transition);
+        }
+        .tab:hover { color: var(--color-text); }
+        .tab[aria-selected="true"] {
+            color: var(--color-accent);
+            border-bottom-color: var(--color-accent);
+        }
+        .tab-panel {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        .tab-panel[hidden] { display: none; }
+        .panel-intro {
+            color: var(--color-muted);
+            font-size: 0.9rem;
+            margin-bottom: calc(-1 * var(--spacing-md));
+        }
+        .panel-intro strong { color: var(--color-accent); font-weight: 600; }
+
+        /* STACKED RESULT: share on top, item count underneath */
+        .result-row-stacked {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.15rem;
+        }
+        .result-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .result-sub {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: var(--color-muted);
+            text-align: right;
+        }
+
+        /* FOOTER */
+        .footer {
+            margin-top: var(--spacing-lg);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-muted);
+            opacity: 0.5;
+        }
+
+        /* ACCESSIBILITY */
+        :focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: 2px;
+        }
+
+        /* ANIMATION */
+        @keyframes flash {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .updated {
+            animation: flash 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header class="page-head">
+        <h1>Time Allocator</h1>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Calculators">
+        <button type="button" role="tab" class="tab" id="tab-split" aria-controls="panel-split" aria-selected="true">Time Allocation</button>
+        <button type="button" role="tab" class="tab" id="tab-batch" aria-controls="panel-batch" aria-selected="false" tabindex="-1">Batch Production</button>
+    </nav>
+
+    <div class="tab-panel" role="tabpanel" id="panel-split" aria-labelledby="tab-split">
+    <p class="panel-intro">Enter both overall times, then each item. Outputs split each overall time <strong>by share</strong>, in hours — top is Time 1, bottom is Time 2.</p>
+    
+    <!-- SECTION 1: TOTAL TIME INPUTS -->
+    <section>
+        <h2 class="section-title">Total Time Allocation</h2>
+        
+        <div class="grid-2-col-mobile">
+            <!-- Input 1 -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Overall Time 1</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="total1-h">Overall Time 1 hours</label>
+                        <input type="number" inputmode="numeric" id="total1-h" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="total1-m">Overall Time 1 minutes</label>
+                        <input type="number" inputmode="numeric" id="total1-m" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2 -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Overall Time 2</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="total2-h">Overall Time 2 hours</label>
+                        <input type="number" inputmode="numeric" id="total2-h" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="total2-m">Overall Time 2 minutes</label>
+                        <input type="number" inputmode="numeric" id="total2-m" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: INDIVIDUAL INPUTS -->
+    <section>
+        <h2 class="section-title">Individual Item Breakdown</h2>
+        <div class="grid-2-col">
+            <!-- Item A -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item A</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-a-h">Item A hours</label>
+                        <input type="number" inputmode="numeric" id="ind-a-h" class="ind-h" data-id="a" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-a-m">Item A minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-a-m" class="ind-m" data-id="a" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item B -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item B</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-b-h">Item B hours</label>
+                        <input type="number" inputmode="numeric" id="ind-b-h" class="ind-h" data-id="b" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-b-m">Item B minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-b-m" class="ind-m" data-id="b" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item C -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item C</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-c-h">Item C hours</label>
+                        <input type="number" inputmode="numeric" id="ind-c-h" class="ind-h" data-id="c" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-c-m">Item C minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-c-m" class="ind-m" data-id="c" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item D -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item D</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-d-h">Item D hours</label>
+                        <input type="number" inputmode="numeric" id="ind-d-h" class="ind-h" data-id="d" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-d-m">Item D minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-d-m" class="ind-m" data-id="d" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item E -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item E</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-e-h">Item E hours</label>
+                        <input type="number" inputmode="numeric" id="ind-e-h" class="ind-h" data-id="e" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-e-m">Item E minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-e-m" class="ind-m" data-id="e" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item F -->
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item F</span>
+                    <span class="sub-label">Input Time</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-f-h">Item F hours</label>
+                        <input type="number" inputmode="numeric" id="ind-f-h" class="ind-h" data-id="f" placeholder="0" min="0" step="1">
+                        <span class="unit-label">Hrs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="ind-f-m">Item F minutes</label>
+                        <input type="number" inputmode="numeric" id="ind-f-m" class="ind-m" data-id="f" placeholder="0" min="0" max="59" step="1">
+                        <span class="unit-label">Mins</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="share-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
+
+    <!-- SECTION 3: RESULTS -->
+    <section>
+        <h2 class="section-title">Calculated Proportional Output</h2>
+        <p class="results-note">Hours — top is the share of Overall Time 1, bottom is the share of Overall Time 2. The two times are never added together.</p>
+        <div class="grid-2-col">
+            <div id="results-left" aria-live="polite">
+                <div class="result-row">
+                    <span class="result-label">Item A</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-a-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-a-2">0.0000</span></span>
+                    </span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item B</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-b-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-b-2">0.0000</span></span>
+                    </span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item C</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-c-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-c-2">0.0000</span></span>
+                    </span>
+                </div>
+            </div>
+            <div id="results-right" aria-live="polite">
+                <div class="result-row">
+                    <span class="result-label">Item D</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-d-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-d-2">0.0000</span></span>
+                    </span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item E</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-e-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-e-2">0.0000</span></span>
+                    </span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Item F</span>
+                    <span class="result-value frac">
+                        <span class="frac-row"><span class="frac-tag">T1</span><span id="out-f-1">0.0000</span></span>
+                        <span class="frac-line"></span>
+                        <span class="frac-row"><span class="frac-tag">T2</span><span id="out-f-2">0.0000</span></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <div class="tab-panel" role="tabpanel" id="panel-batch" aria-labelledby="tab-batch" hidden>
+    <!-- SECTION 4: PROPORTIONAL ALLOCATION -->
+    <section>
+        <h2 class="section-title">Proportional Allocation</h2>
+        <p class="results-note">Each item's production time in seconds, how many of it go into one batch (blank = 1), then the total hours. The hours are split between the items in proportion to their time per batch (seconds × qty) — each output is that item's share, in hours. Under each share is how many whole items it makes, counting complete batches only.</p>
+        <div class="grid-2-col-mobile">
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item A</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-a-sec">Item A production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-a-sec" class="alloc-sec" data-id="a" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-a-qty">Item A quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-a-qty" class="alloc-qty" data-id="a" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item B</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-b-sec">Item B production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-b-sec" class="alloc-sec" data-id="b" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-b-qty">Item B quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-b-qty" class="alloc-qty" data-id="b" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item C</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-c-sec">Item C production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-c-sec" class="alloc-sec" data-id="c" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-c-qty">Item C quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-c-qty" class="alloc-qty" data-id="c" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item D</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-d-sec">Item D production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-d-sec" class="alloc-sec" data-id="d" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-d-qty">Item D quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-d-qty" class="alloc-qty" data-id="d" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item E</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-e-sec">Item E production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-e-sec" class="alloc-sec" data-id="e" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-e-qty">Item E quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-e-qty" class="alloc-qty" data-id="e" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="label-row">
+                    <span class="label">Item F</span>
+                    <span class="sub-label">Time each · Qty per batch</span>
+                </div>
+                <div class="time-inputs">
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-f-sec">Item F production time in seconds</label>
+                        <input type="number" inputmode="decimal" id="alloc-f-sec" class="alloc-sec" data-id="f" placeholder="0" min="0" step="any">
+                        <span class="unit-label">Secs</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <label class="visually-hidden" for="alloc-f-qty">Item F quantity per batch</label>
+                        <input type="number" inputmode="numeric" id="alloc-f-qty" class="alloc-qty" data-id="f" placeholder="1" min="0" step="1">
+                        <span class="unit-label">Qty</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="label-row">
+                <span class="label">Total Hours</span>
+                <span class="sub-label">Hours to fill — decimals allowed</span>
+            </div>
+            <div class="time-inputs">
+                <div class="input-wrapper">
+                    <label class="visually-hidden" for="alloc-hours">Total hours to fill</label>
+                        <input type="number" inputmode="decimal" id="alloc-hours" placeholder="0" min="0" step="any">
+                    <span class="unit-label">Hrs</span>
+                </div>
+            </div>
+        </div>
+        <div id="alloc-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
+        <h3 class="section-title">Hours Allocated · Items Produced</h3>
+        <div class="grid-2-col">
+            <div id="alloc-results-left" aria-live="polite">
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item A</span>
+                        <span class="result-value" id="alloc-a">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-a">0 items required for 0.0000 hours</span>
+                </div>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item B</span>
+                        <span class="result-value" id="alloc-b">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-b">0 items required for 0.0000 hours</span>
+                </div>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item C</span>
+                        <span class="result-value" id="alloc-c">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-c">0 items required for 0.0000 hours</span>
+                </div>
+            </div>
+            <div id="alloc-results-right" aria-live="polite">
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item D</span>
+                        <span class="result-value" id="alloc-d">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-d">0 items required for 0.0000 hours</span>
+                </div>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item E</span>
+                        <span class="result-value" id="alloc-e">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-e">0 items required for 0.0000 hours</span>
+                </div>
+                <div class="result-row result-row-stacked">
+                    <div class="result-main">
+                        <span class="result-label">Item F</span>
+                        <span class="result-value" id="alloc-f">0.0000</span>
+                    </div>
+                    <span class="result-sub" id="count-f">0 items required for 0.0000 hours</span>
+                </div>
+            </div>
+        </div>
+        <div aria-live="polite">
+            <div class="result-row">
+                <span class="result-label">Complete batches</span>
+                <span class="result-value" id="count-batches">0</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Time per batch</span>
+                <span class="result-value" id="count-batch-time">0 min 0 s</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Leftover time</span>
+                <span class="result-value" id="count-leftover">0 min 0 s</span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- SECTION 5: HOURS TO MINUTES (helper for entering precise Total Hours) -->
+    <section>
+        <h2 class="section-title">Hours to Minutes</h2>
+        <p class="results-note">Check a decimal Total Hours value: shown as minutes and seconds, rounded to the nearest second.</p>
+        <div class="input-group">
+            <div class="label-row">
+                <span class="label">Hours</span>
+                <span class="sub-label">Decimals allowed</span>
+            </div>
+            <div class="time-inputs">
+                <div class="input-wrapper">
+                    <label class="visually-hidden" for="convert-hours">Hours to convert to minutes</label>
+                    <input type="number" inputmode="decimal" id="convert-hours" placeholder="0" min="0" step="any">
+                    <span class="unit-label">Hrs</span>
+                </div>
+            </div>
+        </div>
+        <div id="convert-errors" class="error-list" role="alert" aria-live="polite" hidden></div>
+        <div class="result-row" aria-live="polite">
+            <span class="result-label">Minutes</span>
+            <span class="result-value" id="convert-out">0 min 0 s</span>
+        </div>
+    </section>
+    </div>
+
+    <p class="hint">
+<strong>On your home screen:</strong> in Safari, tap Share, then “Add to Home Screen” — it will open full-screen as <strong>Time Alloc</strong>, with no address bar.</p>
+
+    <div class="footer">
+        TIME CALCULATOR v1.4
+    </div>
+</div>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>

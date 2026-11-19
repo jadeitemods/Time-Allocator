@@ -1,0 +1,25 @@
+# Lint, unit tests, and static checks on every pull request and push.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dev dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Allocation unit tests
+        run: npm test
+      - name: Manifest icon paths and PNG sizes
+        run: npm run check:assets
+      - name: Every input has an accessible name
+        run: npm run check:a11y
